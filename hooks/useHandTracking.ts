@@ -61,11 +61,27 @@ export function useHandTracking(
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
           const landmarks = results.multiHandLandmarks[0];
 
+          // Calculate pinch first to determine colors
+          const thumbTip = landmarks[4];
+          const indexTip = landmarks[8];
+
+          const dx = thumbTip.x - indexTip.x;
+          const dy = thumbTip.y - indexTip.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          const isPinching = distance <= 0.05;
+          const midpointX = (thumbTip.x + indexTip.x) / 2;
+          const midpointY = (thumbTip.y + indexTip.y) / 2;
+
+          const glowColor = isPinching ? '#b5ff4a' : '#00f0ff'; // Neon green or Cyber blue
+          
           // Draw custom skeleton
           canvasCtx.save();
-          canvasCtx.lineWidth = 2;
-          canvasCtx.strokeStyle = 'white';
-          canvasCtx.fillStyle = 'white';
+          canvasCtx.lineWidth = 3;
+          canvasCtx.strokeStyle = glowColor;
+          canvasCtx.fillStyle = glowColor;
+          canvasCtx.shadowColor = glowColor;
+          canvasCtx.shadowBlur = 15;
 
           for (const connection of HAND_CONNECTIONS) {
             const start = landmarks[connection[0]];
@@ -79,30 +95,20 @@ export function useHandTracking(
 
           for (const landmark of landmarks) {
             canvasCtx.beginPath();
-            canvasCtx.arc(landmark.x * canvasRef.current.width, landmark.y * canvasRef.current.height, 3, 0, 2 * Math.PI);
+            canvasCtx.arc(landmark.x * canvasRef.current.width, landmark.y * canvasRef.current.height, 4, 0, 2 * Math.PI);
             canvasCtx.fill();
           }
           canvasCtx.restore();
-
-          // Calculate pinch
-          const thumbTip = landmarks[4];
-          const indexTip = landmarks[8];
-
-          const dx = thumbTip.x - indexTip.x;
-          const dy = thumbTip.y - indexTip.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          const isPinching = distance <= 0.05;
-          const midpointX = (thumbTip.x + indexTip.x) / 2;
-          const midpointY = (thumbTip.y + indexTip.y) / 2;
 
           currentHandState = { x: midpointX, y: midpointY, isPinching };
 
           if (isPinching) {
             canvasCtx.save();
             canvasCtx.beginPath();
-            canvasCtx.arc(midpointX * canvasRef.current.width, midpointY * canvasRef.current.height, 10, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = '#b5ff4a';
+            canvasCtx.arc(midpointX * canvasRef.current.width, midpointY * canvasRef.current.height, 12, 0, 2 * Math.PI);
+            canvasCtx.fillStyle = '#ffffff';
+            canvasCtx.shadowColor = '#b5ff4a';
+            canvasCtx.shadowBlur = 20;
             canvasCtx.fill();
             canvasCtx.restore();
           }

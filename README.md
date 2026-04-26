@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Live Puzzle App
 
-## Getting Started
+An interactive, webcam-driven puzzle game built with **Next.js (App Router)**, **Framer Motion**, and **MediaPipe Hand Tracking**. Users capture a photo of themselves using a pinch gesture, which slices into a 3x3 grid. They then drag and drop the pieces into place using their hands!
 
-First, run the development server:
+## Tech Stack
+- **Framework:** Next.js (App Router)
+- **Styling:** Tailwind CSS v4
+- **Animations:** Framer Motion
+- **Hand Tracking:** MediaPipe (via CDN scripts)
+- **Database:** MongoDB (Mongoose)
+- **Icons:** Lucide React
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Local Setup
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Setup MongoDB**
+   You need a MongoDB instance running (either locally or on MongoDB Atlas). 
+   Create a `.env.local` file in the root directory and add your connection string:
+   ```env
+   MONGODB_URI="mongodb://localhost:27017/live-puzzle"
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Start the Development Server**
+   ```bash
+   npm run dev
+   ```
 
-## Learn More
+4. **Play!**
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn more about Next.js, take a look at the following resources:
+## How to Play
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Capture Phase:**
+   - Allow the browser to access your webcam.
+   - Position your hand inside the central dashed box.
+   - **Pinch your thumb and index finger together** to take a picture.
+   - The picture will automatically slice into 9 pieces and shuffle.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Playing Phase:**
+   - A virtual cursor will follow your hand movement (mirrored for ease of use).
+   - Move the cursor over a puzzle piece and **pinch** to grab it.
+   - Drag the piece over another slot and **release the pinch** to swap their positions.
+   - Arrange all 9 pieces into their original order to win!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Leaderboard:**
+   - When completed, your time is paused.
+   - Enter your name to submit your score to the MongoDB database.
+   - Click "Skip & Play Again" to jump back to the capture screen.

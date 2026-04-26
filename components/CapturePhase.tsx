@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PuzzlePiece, HandState } from '../types';
 
 interface CapturePhaseProps {
@@ -10,14 +11,9 @@ interface CapturePhaseProps {
 export default function CapturePhase({ handState, videoRef, onCapture }: CapturePhaseProps) {
   const [hasCaptured, setHasCaptured] = useState(false);
 
-  // Check for capture condition
   useEffect(() => {
     if (hasCaptured || !videoRef.current || !handState.isPinching) return;
 
-    // Check if hand is inside the center box
-    // Center box is 450x450 in a 800x600 logical space
-    // X: [175/800, 625/800] -> [0.21875, 0.78125]
-    // Y: [75/600, 525/600] -> [0.125, 0.875]
     const inBoxX = handState.x >= 0.21875 && handState.x <= 0.78125;
     const inBoxY = handState.y >= 0.125 && handState.y <= 0.875;
 
@@ -31,7 +27,6 @@ export default function CapturePhase({ handState, videoRef, onCapture }: Capture
     const video = videoRef.current;
     if (!video) return;
 
-    // Actual video dimensions
     const vw = video.videoWidth || 800;
     const vh = video.videoHeight || 600;
     const size = Math.min(vw, vh) * 0.8; 
@@ -45,12 +40,10 @@ export default function CapturePhase({ handState, videoRef, onCapture }: Capture
     const ctx = tmpCanvas.getContext('2d');
     if (!ctx) return;
 
-    // Draw mirrored so puzzle matches what user sees
     ctx.translate(size, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, startX, startY, size, size, 0, 0, size, size);
 
-    // Now slice into 3x3
     const pieceSize = size / 3;
     const pieces: PuzzlePiece[] = [];
     let idCounter = 0;
@@ -70,7 +63,7 @@ export default function CapturePhase({ handState, videoRef, onCapture }: Capture
           pieces.push({
             id: `piece-${idCounter}`,
             originalIndex: idCounter,
-            currentIndex: idCounter, // will shuffle below
+            currentIndex: idCounter,
             imageSliceDataUrl: sliceCanvas.toDataURL('image/jpeg', 0.9)
           });
           idCounter++;
@@ -78,9 +71,7 @@ export default function CapturePhase({ handState, videoRef, onCapture }: Capture
       }
     }
 
-    // Shuffle
     const shuffledPieces = [...pieces];
-    // Simple Fisher-Yates
     for (let i = shuffledPieces.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       const temp = shuffledPieces[i].currentIndex;
@@ -88,34 +79,66 @@ export default function CapturePhase({ handState, videoRef, onCapture }: Capture
       shuffledPieces[j].currentIndex = temp;
     }
 
-    // Delay for visual feedback
     setTimeout(() => {
       onCapture(shuffledPieces);
     }, 500);
   };
 
   return (
-    <div className="relative w-[800px] h-[600px] z-20 pointer-events-none">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.5 }}
+      className="relative w-[800px] h-[600px] z-20 pointer-events-none"
+    >
       {/* Target Box UI overlay */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div 
-          className={`w-[450px] h-[450px] border-4 transition-colors duration-200 ${
-            hasCaptured ? 'border-neon-green bg-neon-green/20' : 'border-white/50 border-dashed'
-          }`}
-        >
-          {hasCaptured && (
-            <div className="w-full h-full flex items-center justify-center bg-black/50 text-neon-green font-mono text-xl font-bold">
-              CAPTURING...
-            </div>
+        <div className="relative w-[450px] h-[450px]">
+          {/* Corner Brackets */}
+          <div className={`absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 transition-colors duration-300 ${hasCaptured ? 'border-neon-green' : 'border-white/60'}`} />
+          <div className={`absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 transition-colors duration-300 ${hasCaptured ? 'border-neon-green' : 'border-white/60'}`} />
+          <div className={`absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 transition-colors duration-300 ${hasCaptured ? 'border-neon-green' : 'border-white/60'}`} />
+          <div className={`absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 transition-colors duration-300 ${hasCaptured ? 'border-neon-green' : 'border-white/60'}`} />
+
+          {/* Scanning Laser Line */}
+          {!hasCaptured && (
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-neon-green shadow-[0_0_15px_#b5ff4a] animate-scan-line overflow-hidden" />
           )}
+
+          {/* Capture Flash/Overlay */}
+          <AnimatePresence>
+            {hasCaptured && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-neon-green/30 backdrop-blur-sm flex items-center justify-center border border-neon-green/50"
+              >
+                <motion.span 
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="text-neon-green font-mono text-2xl font-bold drop-shadow-[0_0_10px_rgba(181,255,74,0.8)]"
+                >
+                  CAPTURING...
+                </motion.span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="absolute bottom-6 w-full text-center">
-        <p className="font-mono text-white/80 bg-black/60 inline-block px-4 py-2 rounded">
-          Pinch inside the box to capture
-        </p>
+      <div className="absolute bottom-10 w-full text-center">
+        <motion.div 
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-block"
+        >
+          <p className="font-mono text-neon-green bg-black/60 backdrop-blur-md px-6 py-3 rounded-full border border-neon-green/30 shadow-[0_0_15px_rgba(181,255,74,0.2)]">
+            <span className="font-bold text-white mr-2">ACTION:</span> Pinch inside the box to capture
+          </p>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
