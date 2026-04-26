@@ -61,7 +61,7 @@ export function useHandTracking(
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
           const landmarks = results.multiHandLandmarks[0];
 
-          // Calculate pinch first to determine colors
+          // Calculate pinch first to determine state
           const thumbTip = landmarks[4];
           const indexTip = landmarks[8];
 
@@ -70,18 +70,15 @@ export function useHandTracking(
           const distance = Math.sqrt(dx * dx + dy * dy);
           
           const isPinching = distance <= 0.05;
-          const midpointX = (thumbTip.x + indexTip.x) / 2;
+          // Flip X here by subtracting from 1
+          const midpointX = 1 - ((thumbTip.x + indexTip.x) / 2);
           const midpointY = (thumbTip.y + indexTip.y) / 2;
 
-          const glowColor = isPinching ? '#b5ff4a' : '#00f0ff'; // Neon green or Cyber blue
-          
           // Draw custom skeleton
           canvasCtx.save();
-          canvasCtx.lineWidth = 3;
-          canvasCtx.strokeStyle = glowColor;
-          canvasCtx.fillStyle = glowColor;
-          canvasCtx.shadowColor = glowColor;
-          canvasCtx.shadowBlur = 15;
+          canvasCtx.lineWidth = 1.5;
+          canvasCtx.strokeStyle = 'white';
+          canvasCtx.fillStyle = 'white';
 
           for (const connection of HAND_CONNECTIONS) {
             const start = landmarks[connection[0]];
@@ -95,7 +92,7 @@ export function useHandTracking(
 
           for (const landmark of landmarks) {
             canvasCtx.beginPath();
-            canvasCtx.arc(landmark.x * canvasRef.current.width, landmark.y * canvasRef.current.height, 4, 0, 2 * Math.PI);
+            canvasCtx.arc(landmark.x * canvasRef.current.width, landmark.y * canvasRef.current.height, 2, 0, 2 * Math.PI);
             canvasCtx.fill();
           }
           canvasCtx.restore();
@@ -105,10 +102,10 @@ export function useHandTracking(
           if (isPinching) {
             canvasCtx.save();
             canvasCtx.beginPath();
-            canvasCtx.arc(midpointX * canvasRef.current.width, midpointY * canvasRef.current.height, 12, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = '#ffffff';
-            canvasCtx.shadowColor = '#b5ff4a';
-            canvasCtx.shadowBlur = 20;
+            // Important: we use the un-flipped coordinates to draw ON the mirrored canvas overlay!
+            const canvasMidX = (thumbTip.x + indexTip.x) / 2;
+            canvasCtx.arc(canvasMidX * canvasRef.current.width, midpointY * canvasRef.current.height, 8, 0, 2 * Math.PI);
+            canvasCtx.fillStyle = '#b5ff4a';
             canvasCtx.fill();
             canvasCtx.restore();
           }

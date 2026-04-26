@@ -39,11 +39,11 @@ export default function CompletedPhase({ timeMs, onRestart }: CompletedPhaseProp
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="absolute inset-0 z-50 w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-auto"
+      className="absolute inset-0 z-50 w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-auto font-mono"
     >
       <div className="flex flex-col items-center max-w-md w-full px-6">
         {/* Trophy Icon */}
-        <Trophy className="w-24 h-24 text-neon-green mb-6" strokeWidth={1.5} />
+        <Trophy className="w-24 h-24 text-[#b5ff4a] mb-6" strokeWidth={1.5} />
 
         {/* Title */}
         <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">
@@ -51,7 +51,7 @@ export default function CompletedPhase({ timeMs, onRestart }: CompletedPhaseProp
         </h1>
 
         {/* Time */}
-        <div className="text-2xl text-white font-mono mb-12 flex items-center gap-2">
+        <div className="text-2xl text-white mb-12 flex items-center gap-2">
           <span>⏱</span> {formatTime(timeMs)}
         </div>
 
@@ -75,7 +75,7 @@ export default function CompletedPhase({ timeMs, onRestart }: CompletedPhaseProp
             type="submit"
             disabled={!name.trim() || isSubmitting}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 ${
-              name.trim() && !isSubmitting ? 'bg-neon-green text-black' : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+              name.trim() && !isSubmitting ? 'bg-[#b5ff4a] text-black' : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
             }`}
           >
             {isSubmitting ? (
